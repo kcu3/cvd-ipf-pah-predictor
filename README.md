@@ -11,7 +11,7 @@ git clone https://github.com/kcu3/cvd-ipf-pah-predictor.git
 cd cvd-ipf-pah-predictor
 ```
 
-Download `predictor_model_assets.zip` from Releases and extract it here, creating `models/`. Keep the archive and model files out of Git. `MODEL_SHA256.json` and `verify_models.py` verify each extracted model file.
+Download `predictor_model_assets.zip` from [the private release](https://github.com/kcu3/cvd-ipf-pah-predictor/releases/tag/v1.0.0) and extract it here, creating `models/`. Keep the archive and model files out of Git. `MODEL_SHA256.json` and `verify_models.py` verify each extracted model file.
 
 ## Requirements
 
@@ -60,4 +60,4 @@ The weights and preprocessing summaries are UKBB/BBRU-derived artifacts, not raw
 
 ## Verification status
 
-The source application's 46 tests passed after the memory optimization. The handoff was checked for model integrity, authentication, all three predictors, and Excel behavior using the local Python environment. Docker is not installed in the preparation environment, so an actual image build and Linux container startup remain to be performed by the recipient. No claim of a tested container deployment is made.
+The source application's 46 tests passed after the memory optimization. The handoff was checked for model integrity, authentication, all three predictors, and Excel behavior using the local Python environment. GitHub Actions successfully validated Python syntax and Compose configuration and built the Docker image on Linux. A full server startup with the private models, real DNS and HTTPS remains part of deployment verification.
