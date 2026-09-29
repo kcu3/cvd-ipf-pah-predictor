@@ -58,6 +58,4 @@ CVD uses the supplied UKBB PU forest with the BBRU adapter/calibration. IPF and 
 
 The weights and preprocessing summaries are UKBB/BBRU-derived artifacts, not raw records. Their inclusion is not a determination of permission to redistribute them; the project holder should confirm the recipient and permitted use under the applicable project arrangements.
 
-## Verification status
 
-The source application's 46 tests passed after the memory optimization. The handoff was checked for model integrity, authentication, all three predictors, and Excel behavior using the local Python environment. GitHub Actions successfully validated Python syntax and Compose configuration and built the Docker image on Linux. A full server startup with the private models, real DNS and HTTPS remains part of deployment verification.
