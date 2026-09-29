@@ -1,0 +1,14 @@
+*
+!requirements.txt
+!app.py
+!predictor.py
+!compact_forest.py
+!presentation.py
+!schema.py
+!spreadsheets.py
+!hosted_auth.py
+!server.py
+!templates/
+!templates/**
+!static/
+!static/**

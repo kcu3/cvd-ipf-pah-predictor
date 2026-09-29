@@ -1,0 +1,10 @@
+models/
+secrets/
+.env
+.venv/
+__pycache__/
+*.zip
+.setup-venv/
+
+.DS_Store
+*.pyc

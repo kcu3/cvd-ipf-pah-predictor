@@ -1,0 +1,3 @@
+{$PREDICTOR_DOMAIN} {
+    reverse_proxy predictor:8000
+}

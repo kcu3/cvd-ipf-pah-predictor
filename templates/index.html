@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{{ cfg.title }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<main class="page">
+  <section class="hero">
+    <div class="eyebrow">Disease prediction models</div>
+    <h1>{{ cfg.title }}</h1>
+    <p>{{ cfg.subtitle }}</p>
+
+    <nav class="disease-switch" aria-label="Choose predictor">
+      {% for key, item in diseases.items() %}
+        <a href="{{ url_for('index', disease=key) }}" class="switch-pill {% if key == disease %}active{% endif %}">
+          {{ item.label }}
+        </a>
+      {% endfor %}
+    </nav>
+  </section>
+
+  {% if model_error %}
+    <div class="alert"><strong>{{ cfg.label }} model unavailable.</strong><br>Run check_setup.py in the project interpreter to see the setup error.</div>
+  {% endif %}
+
+  <section class="card batch-card" aria-labelledby="batch-title">
+    <div class="card-heading"><div><h2 id="batch-title">Predict from an Excel file</h2><p>One row per record. Download the {{ cfg.label }} template, fill the Data sheet, then upload.</p></div><span class="model-chip">Batch</span></div>
+    <p><a class="template-link" href="{{ url_for('template', disease=disease) }}">Download {{ cfg.label }} Excel template</a></p>
+    <form action="{{ url_for('batch') }}" method="post" enctype="multipart/form-data" class="batch-form">
+      <input type="hidden" name="disease" value="{{ disease }}">
+      <div><label for="batch-file">{{ cfg.label }} data file</label><input id="batch-file" name="file" type="file" accept=".xlsx,.csv" required aria-describedby="upload-help"></div>
+      <button type="submit" {% if model_error %}disabled{% endif %}>Download predictions</button>
+    </form>
+    <p id="upload-help" class="muted">.xlsx or UTF-8 .csv · Up to {{ max_rows }} rows / 16 MB. The Data sheet (or first worksheet) is read. Results include input values and errors for invalid rows. Files are processed in memory and are not saved by the application.</p>
+  </section>
+
+  {% if errors %}
+    <div class="alert"><ul>{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul></div>
+  {% endif %}
+
+  <div class="layout">
+    <section class="card input-card">
+      <div class="card-heading">
+        <div>
+          <h2>Patient inputs</h2>
+          <p>{{ fields|length }} displayed inputs for the {{ cfg.label }} predictor.</p>
+        </div>
+        <span class="model-chip">{{ cfg.label }}</span>
+      </div>
+
+      <div class="quick-fill">
+        <button type="button" id="fill-typical" {% if model_error %}disabled{% endif %}>Fill typical values</button>
+        <p class="muted">Fill every input with its saved training median for a quick test. Replaces current entries; review before calculating.</p>
+        <span id="fill-status" role="status" aria-live="polite"></span>
+      </div>
+
+      <form method="post" class="grid" action="{{ url_for('index') }}">
+        <input type="hidden" name="disease" value="{{ disease }}">
+        {% for field in fields %}
+          <div class="field">
+            <label for="{{ field.name }}">{{ field.label }}</label>
+            {% if field.type == "select" %}
+              <select id="{{ field.name }}" name="{{ field.name }}" data-default="{{ defaults.get(field.name, '') }}" required>
+                <option value="" disabled {% if field.name not in values %}selected{% endif %}>Select</option>
+                {% for val, lab in field.options %}
+                  <option value="{{ val }}" {% if field.name in values and values[field.name]|float == val|float %}selected{% endif %}>{{ lab }}</option>
+                {% endfor %}
+              </select>
+            {% else %}
+              <div class="inputunit">
+                <input id="{{ field.name }}" name="{{ field.name }}" type="number" step="any"
+                       min="{{ field.min }}" max="{{ field.max }}" data-default="{{ defaults.get(field.name, '') }}"
+                       value="{% if field.name in values %}{{ values[field.name] }}{% endif %}" aria-describedby="{{ field.name }}-range {{ field.name }}-feedback" required>
+                <span>{{ field.unit }}</span>
+              </div>
+              <span id="{{ field.name }}-feedback" class="field-error" aria-live="polite"></span>
+            {% endif %}
+            <div class="range-hint" id="{{ field.name }}-range">{% if field.type != "select" %}Allowed: {{ field.min }}–{{ field.max }} {{ field.unit }}{% if disease != "cvd" %}<br>{{ field.range_hint }}{% endif %}{% else %}{{ field.range_hint }}{% endif %}</div>
+          </div>
+        {% endfor %}
+        <button type="submit" {% if model_error %}disabled{% endif %}>{% if disease == 'cvd' %}Calculate 10-year probability{% else %}Calculate {{ cfg.label }} prediction{% endif %}</button>
+      </form>
+    </section>
+
+    <section class="card result" id="prediction-result">
+      <div class="card-heading">
+        <div>
+          <h2>Result</h2>
+          <p>{{ cfg.score_label }}</p>
+        </div>
+      </div>
+
+      {% if result %}
+        {% if result.calibrated_probability is not none %}
+        <div class="risk">{{ "%.2f"|format(result.calibrated_probability * 100) }}%</div>
+        <div class="muted">Estimated probability of CVD within 10 years</div>
+        {% else %}<div class="risk">{{ "%.2f"|format(result.model_score * 100) }}%</div><div class="muted">{{ cfg.label }} model score · 0–100%</div>{% endif %}
+        {% if result.imputed_count %}<p class="muted">{{ result.imputed_count }} inputs filled with training medians: {{ result.imputed_features }}.</p>{% endif %}
+
+      {% else %}
+        <div class="empty">
+          <div class="empty-icon">↗</div>
+          <strong>Select {{ cfg.label }} inputs</strong>
+          <span>Enter the values on the left and calculate a prediction.</span>
+        </div>
+      {% endif %}
+    </section>
+  </div>
+
+  {% if disease == "cvd" %}<section class="note">
+      The estimate uses the supplied UKBB model with BBRU calibration. It is not the AHA PREVENT calculator. Values not supplied in the form are filled with training medians.
+  </section>{% endif %}
+</main>
+<script src="{{ url_for('static', filename='app.js') }}" defer></script>
+</body>
+</html>
